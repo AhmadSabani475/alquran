@@ -109,7 +109,7 @@ const SurahCard = ({ surah, onSelect }) => (
           ({surah.nama})
         </span>
       </h2>
-      {/* Perubahan Properti: Menggunakan jumlah_ayat dan tempat_turun (SantriKoding) */}
+
       <p className="text-sm text-gray-500 mt-1">
         Arti: {surah.arti} | {surah.jumlah_ayat} Ayat | Golongan:{" "}
         {surah.tempat_turun}
@@ -237,7 +237,7 @@ const SurahDetail = ({
             {detailData.tempat_turun}
           </p>
           <p className="text-sm text-gray-400 mt-1">
-            Nomor Surah: {detailData.nomor}
+            Surat Ke - {detailData.nomor}
           </p>
         </div>
 
@@ -267,7 +267,7 @@ const SurahDetail = ({
         {/* Deskripsi/Tafsir Singkat */}
         <p className="mt-6 text-sm italic text-gray-500 border-t pt-4">
           {/* Perubahan Properti: Menggunakan properti 'keterangan' (SantriKoding) */}
-          {(detailData.keterangan || "Deskripsi tidak tersedia").replace(
+          {(detailData.deskripsi || "Deskripsi tidak tersedia").replace(
             /<[^>]*>?/gm,
             ""
           )}
@@ -305,12 +305,14 @@ const AyahCard = ({ ayah }) => (
       {ayah.ar}
     </p>
 
-    {/* Terjemahan */}
-    <div className="mt-4 pt-4 border-t border-gray-200">
-      {/* Perubahan Properti: Menggunakan properti 'id' (SantriKoding) */}
+    <div className="mt-4 pt-4 border-t border-gray-200 flex flex-col gap-2">
+      <p className="text-base text-gray-700 italic">
+        <span className="font-semibold text-emerald-600">Latin : </span>{" "}
+        <span dangerouslySetInnerHTML={{ __html: ayah.tr }} />
+      </p>
       <p className="text-base text-gray-700 italic">
         <span className="font-semibold text-emerald-600">Terjemahan:</span>{" "}
-        {ayah.id}
+        {ayah.idn}
       </p>
     </div>
   </div>
@@ -370,7 +372,7 @@ const App = () => {
     } catch (err) {
       console.error("Fetch Error:", err);
       setError("Gagal memuat data daftar surah. Silakan coba lagi.");
-      setSurahs([]); // Kosongkan daftar surah saat terjadi error
+      setSurahs([]);
     } finally {
       setIsLoading(false);
     }
