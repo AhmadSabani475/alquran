@@ -13,9 +13,9 @@ import {
   Loader,
   StopCircle,
   VolumeX,
+  Search, // Diimpor untuk fungsi pencarian
 } from "lucide-react";
 
-// URL API yang akan digunakan (SantriKoding API, Tanpa Wrapper)
 const API_URL_LIST = "https://quran-api.santrikoding.com/api/surah";
 const API_URL_DETAIL_BASE = "https://quran-api.santrikoding.com/api/surah";
 
@@ -102,7 +102,6 @@ const SurahCard = ({ surah, onSelect }) => (
     </div>
 
     <div className="ml-4 flex-grow">
-      {/* Perubahan Properti: Menggunakan nama_latin (SantriKoding) */}
       <h2 className="text-lg font-bold text-gray-800">
         {surah.nama_latin}{" "}
         <span className="text-sm font-normal text-emerald-600">
@@ -123,13 +122,21 @@ const SurahCard = ({ surah, onSelect }) => (
   </button>
 );
 
-// Component: Daftar Semua Surah (secara logis dipisahkan)
-const SurahList = ({ surahs, isLoading, onSelectSurah, onRetry }) => {
+// Component: Daftar Semua Surah (DIMODIFIKASI untuk menambahkan search)
+const SurahList = ({
+  surahs,
+  isLoading,
+  onSelectSurah,
+  onRetry,
+  searchTerm,
+  onSearchChange,
+}) => {
   if (isLoading) {
     return <LoadingState message="Memuat daftar surah..." />;
   }
 
-  if (surahs.length === 0) {
+  // Tampilkan notifikasi jika ada error umum (tapi App menanganinya juga)
+  if (surahs.length === 0 && !searchTerm) {
     return (
       <div className="p-6 text-center text-red-600 bg-red-100 rounded-lg m-4">
         <p className="font-bold">Tidak ada data surah yang dimuat.</p>
@@ -143,16 +150,46 @@ const SurahList = ({ surahs, isLoading, onSelectSurah, onRetry }) => {
     );
   }
 
-  return (
-    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4">
-      {surahs.map((surah) => (
-        <SurahCard key={surah.nomor} surah={surah} onSelect={onSelectSurah} />
-      ))}
+  // Komponen Input Pencarian
+  const SearchInput = (
+    <div className="p-4 bg-gray-50 mx-2">
+      <div className="relative bg-white p-4 rounded-xl shadow-lg">
+        <Search
+          size={20}
+          className="absolute left-4 top-1/2 transform -translate-y-1/2 text-emerald-500"
+        />
+        <input
+          type="text"
+          placeholder="Cari Surah (nama, arti, atau nomor)..."
+          value={searchTerm}
+          onChange={(e) => onSearchChange(e.target.value)}
+          className="w-full py-3 pl-12 pr-4 border border-gray-200 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition duration-150 outline-none"
+        />
+      </div>
+      {searchTerm && surahs.length === 0 && (
+        <div className="mt-4 p-4 text-center text-orange-600 bg-orange-100 rounded-lg">
+          <p className="font-medium">
+            Tidak ditemukan Surah yang cocok dengan kata kunci "
+            <span className="font-bold italic">{searchTerm}</span>".
+          </p>
+        </div>
+      )}
     </div>
+  );
+
+  return (
+    <>
+      {SearchInput}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 p-4 pt-0">
+        {surahs.map((surah) => (
+          <SurahCard key={surah.nomor} surah={surah} onSelect={onSelectSurah} />
+        ))}
+      </div>
+    </>
   );
 };
 
-// Component: Detail Surah (secara logis dipisahkan)
+// Component: Detail Surah (TETAP)
 const SurahDetail = ({
   surah,
   onBack,
@@ -164,7 +201,6 @@ const SurahDetail = ({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
 
-  // Perubahan URL Detail: Menggunakan format SantriKoding
   const API_URL_DETAIL = `${API_URL_DETAIL_BASE}/${surah.nomor}`;
 
   const fetchDetail = useCallback(async () => {
@@ -179,7 +215,6 @@ const SurahDetail = ({
       }
       const data = await response.json();
 
-      // Perubahan Penanganan Wrapper: SantriKoding API mengembalikan objek detail langsung (tanpa data wrapper)
       if (!data || !data.ayat || !Array.isArray(data.ayat)) {
         throw new Error("Gagal memuat detail surah: Format data tidak valid.");
       }
@@ -198,7 +233,6 @@ const SurahDetail = ({
   }, [fetchDetail]);
 
   if (isLoading) {
-    // Perubahan Properti: Menggunakan nama_latin (SantriKoding)
     return <LoadingState message={`Memuat Surah ${surah.nama_latin}...`} />;
   }
 
@@ -216,7 +250,6 @@ const SurahDetail = ({
     );
   }
 
-  // Perubahan Audio: SantriKoding (lama) biasanya menyediakan URL audio langsung di properti 'audio'
   const audioFullUrl = detailData?.audio;
   const isPlaying = audioFullUrl === currentAudioUrl;
 
@@ -225,7 +258,6 @@ const SurahDetail = ({
       {/* Informasi Umum Surah */}
       <div className="bg-white p-6 rounded-xl shadow-lg border-t-4 border-emerald-500">
         <div className="text-center mb-4">
-          {/* Perubahan Properti: Menggunakan nama_latin, jumlah_ayat, tempat_turun */}
           <h2 className="text-3xl font-extrabold text-emerald-800">
             {detailData.nama_latin} ({detailData.nama})
           </h2>
@@ -266,7 +298,6 @@ const SurahDetail = ({
 
         {/* Deskripsi/Tafsir Singkat */}
         <p className="mt-6 text-sm italic text-gray-500 border-t pt-4">
-          {/* Perubahan Properti: Menggunakan properti 'keterangan' (SantriKoding) */}
           {(detailData.deskripsi || "Deskripsi tidak tersedia").replace(
             /<[^>]*>?/gm,
             ""
@@ -276,7 +307,6 @@ const SurahDetail = ({
 
       {/* Tampilkan Ayat-ayat */}
       <div className="space-y-10">
-        {/* Perubahan Properti: Menggunakan properti 'ayat' (SantriKoding) */}
         {detailData.ayat.map((ayah) => (
           <AyahCard key={ayah.nomor} ayah={ayah} />
         ))}
@@ -285,19 +315,17 @@ const SurahDetail = ({
   );
 };
 
-// Component: Kartu Ayat (secara logis dipisahkan)
+// Component: Kartu Ayat (TETAP)
 const AyahCard = ({ ayah }) => (
   <div className="bg-white p-6 rounded-xl shadow-md transition-shadow hover:shadow-lg border-l-4 border-emerald-400">
     {/* Nomor Ayat */}
     <div className="flex justify-between items-start mb-4 border-b pb-3">
-      {/* Perubahan Properti: Menggunakan properti 'nomor' (SantriKoding) */}
       <span className="text-xl font-mono text-emerald-600 bg-emerald-50 px-3 py-1 rounded-full font-bold">
         {ayah.surah}:{ayah.nomor}
       </span>
     </div>
 
     {/* Teks Arab */}
-    {/* Perubahan Properti: Menggunakan properti 'ar' (SantriKoding) */}
     <p
       className="text-right text-4xl leading-relaxed font-arabic text-gray-900 my-4"
       style={{ fontFamily: "Amiri, serif" }}
@@ -318,13 +346,14 @@ const AyahCard = ({ ayah }) => (
   </div>
 );
 
-// Komponen Utama Aplikasi
+// Komponen Utama Aplikasi (DIMODIFIKASI untuk state pencarian dan filtering)
 const App = () => {
   const [surahs, setSurahs] = useState([]);
   const [selectedSurah, setSelectedSurah] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [audioError, setAudioError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState(""); // State baru untuk pencarian
 
   const audioRef = useRef(null);
   const [currentAudioUrl, setCurrentAudioUrl] = useState(null);
@@ -338,7 +367,7 @@ const App = () => {
     []
   );
 
-  // Fungsi untuk mengambil daftar surah
+  // Fungsi untuk mengambil daftar surah (TETAP)
   const fetchSurahList = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -351,17 +380,12 @@ const App = () => {
       }
       const result = await response.json();
 
-      // Perubahan Penanganan Wrapper: SantriKoding API mengembalikan array langsung
       if (!Array.isArray(result)) {
         throw new Error("Gagal memuat daftar surah: Format data tidak valid.");
       }
 
-      // Data SantriKoding menggunakan snake_case, mari kita bersihkan/normalisasi
       const normalizedSurahs = result.map((s) => ({
         ...s,
-        // Normalisasi properti dari snake_case ke camelCase untuk konsistensi,
-        // meskipun komponen lain sudah diubah ke snake_case untuk API ini.
-        // Tapi untuk tampilan List, kita harus pastikan properti yang diakses di SurahCard ada.
         nama_latin: s.nama_latin || s.nama,
         jumlah_ayat: s.jumlah_ayat,
         tempat_turun: s.tempat_turun,
@@ -382,59 +406,77 @@ const App = () => {
     fetchSurahList();
   }, [fetchSurahList]);
 
-  // Menutup notifikasi audio
+  // Handler untuk perubahan input pencarian
+  const handleSearchChange = useCallback((value) => {
+    setSearchTerm(value);
+  }, []);
+
+  // Logika Pemfilteran Surah menggunakan useMemo
+  const filteredSurahs = useMemo(() => {
+    if (!searchTerm) {
+      return surahs;
+    }
+
+    const lowerCaseSearch = searchTerm.toLowerCase();
+
+    return surahs.filter(
+      (surah) =>
+        surah.nama_latin.toLowerCase().includes(lowerCaseSearch) || // Nama Latin
+        (surah.nama && surah.nama.toLowerCase().includes(lowerCaseSearch)) || // Nama Arab
+        surah.arti.toLowerCase().includes(lowerCaseSearch) || // Arti
+        String(surah.nomor).includes(searchTerm.trim()) // Nomor Surah
+    );
+  }, [surahs, searchTerm]);
+
+  // Menutup notifikasi audio (TETAP)
   const handleCloseAudioError = useCallback(() => {
     setAudioError(null);
   }, []);
 
-  // Tambahkan useEffect untuk sinkronisasi audioRef dan currentAudioUrl
+  // Tambahkan useEffect untuk sinkronisasi audioRef dan currentAudioUrl (TETAP)
   useEffect(() => {
-    // Setup listener untuk mengosongkan URL ketika audio selesai
     const audioEl = audioRef.current;
     if (audioEl) {
       const handleEnded = () => setCurrentAudioUrl(null);
       audioEl.addEventListener("ended", handleEnded);
-
-      // Cleanup function
       return () => {
         audioEl.removeEventListener("ended", handleEnded);
       };
     }
-  }, []); // Hanya dijalankan saat mount
+  }, []);
 
-  // Handler untuk memilih surah
+  // Handler untuk memilih surah (TETAP)
   const handleSelectSurah = (surah) => {
     setSelectedSurah(surah);
-    handleStopAudio(); // Hentikan audio yang sedang berjalan saat berpindah Surah
+    handleStopAudio();
   };
 
-  // Handler untuk kembali ke daftar surah
+  // Handler untuk kembali ke daftar surah (TETAP)
   const handleBackToList = () => {
     setSelectedSurah(null);
-    handleStopAudio(); // Hentikan audio saat kembali ke daftar
+    handleStopAudio();
   };
 
-  // Logika Stop Audio yang baru
+  // Logika Stop Audio yang baru (TETAP)
   const handleStopAudio = () => {
     if (audioRef.current && !audioRef.current.paused) {
       audioRef.current.pause();
       audioRef.current.currentTime = 0;
     }
     setCurrentAudioUrl(null);
-    handleCloseAudioError(); // Tutup notifikasi audio jika ada
+    handleCloseAudioError();
   };
 
-  // Logika Play Audio yang baru (tanpa alert)
+  // Logika Play Audio yang baru (TETAP)
   const handlePlayAudio = (audioUrl) => {
     const audioEl = audioRef.current;
 
-    handleStopAudio(); // Hentikan audio yang sedang berjalan
-    handleCloseAudioError(); // Pastikan pesan error lama tertutup
+    handleStopAudio();
+    handleCloseAudioError();
 
-    // Set URL baru
     if (audioEl) {
       audioEl.src = audioUrl;
-      audioEl.load(); // Memuat ulang sumber audio
+      audioEl.load();
       audioEl
         .play()
         .then(() => {
@@ -442,14 +484,12 @@ const App = () => {
         })
         .catch((e) => {
           console.error("Gagal memutar audio:", e);
-          // Menampilkan notifikasi error di UI
           if (e.name === "NotAllowedError") {
             setAudioError(
               "Browser memblokir pemutaran otomatis. Mohon coba klik lagi atau putar melalui kontrol di bawah."
             );
           } else if (e.name === "AbortError") {
-            // Biasa terjadi jika audio dihentikan dengan cepat
-            // Abaikan kesalahan ini
+            // Abaikan
           } else {
             setAudioError(
               "Terdapat kesalahan saat memutar audio. Cek koneksi internet Anda."
@@ -462,8 +502,7 @@ const App = () => {
 
   // Menentukan judul halaman berdasarkan state
   const pageTitle = selectedSurah
-    ? // Perubahan Properti: Menggunakan nama_latin (SantriKoding)
-      `Surah ${selectedSurah.nama_latin} (${selectedSurah.nama})`
+    ? `Surah ${selectedSurah.nama_latin} (${selectedSurah.nama})`
     : "Al-Qur'an Digital Indonesia";
 
   return (
@@ -478,7 +517,7 @@ const App = () => {
       />
 
       {/* Konten Utama */}
-      <main className="max-w-4xl mx-auto px-2">
+      <main className="max-w-4xl mx-auto">
         {error &&
           !selectedSurah && ( // Tampilkan error hanya di halaman daftar
             <div className="p-4 bg-red-100 text-red-700 border-l-4 border-red-500 rounded-lg m-4 flex justify-between items-center">
@@ -503,10 +542,12 @@ const App = () => {
           />
         ) : (
           <SurahList
-            surahs={surahs}
+            surahs={filteredSurahs} // Menggunakan daftar yang sudah difilter
             isLoading={isLoading}
             onSelectSurah={handleSelectSurah}
             onRetry={fetchSurahList}
+            searchTerm={searchTerm} // Mengirim state pencarian
+            onSearchChange={handleSearchChange} // Mengirim handler pencarian
           />
         )}
       </main>
