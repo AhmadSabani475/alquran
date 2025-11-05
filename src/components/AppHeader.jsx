@@ -19,7 +19,7 @@ const AppHeader = ({ pageTitle, onBack }) => (
       >
         {pageTitle}
       </h1>
-      {onBack && <div className="w-10"></div>} {/* Placeholder for centering */}
+      {onBack && <div className="w-10"></div>}
     </div>
   </header>
 );

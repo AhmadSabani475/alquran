@@ -16,12 +16,11 @@ const App = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
   const [audioError, setAudioError] = useState(null);
-  const [searchTerm, setSearchTerm] = useState(""); // State baru untuk pencarian
+  const [searchTerm, setSearchTerm] = useState(""); 
 
   const audioRef = useRef(null);
   const [currentAudioUrl, setCurrentAudioUrl] = useState(null);
 
-  // Custom font for Arabic text
   const arabicFontCss = useMemo(
     () => `
     @import url('https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap');
@@ -30,7 +29,6 @@ const App = () => {
     []
   );
 
-  // Fungsi untuk mengambil daftar surah (TETAP)
   const fetchSurahList = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -64,39 +62,28 @@ const App = () => {
       setIsLoading(false);
     }
   }, []);
-
   useEffect(() => {
     fetchSurahList();
   }, [fetchSurahList]);
-
-  // Handler untuk perubahan input pencarian
   const handleSearchChange = useCallback((value) => {
     setSearchTerm(value);
   }, []);
-
-  // Logika Pemfilteran Surah menggunakan useMemo
   const filteredSurahs = useMemo(() => {
     if (!searchTerm) {
       return surahs;
     }
-
     const lowerCaseSearch = searchTerm.toLowerCase();
-
     return surahs.filter(
       (surah) =>
-        surah.nama_latin.toLowerCase().includes(lowerCaseSearch) || // Nama Latin
-        (surah.nama && surah.nama.toLowerCase().includes(lowerCaseSearch)) || // Nama Arab
-        surah.arti.toLowerCase().includes(lowerCaseSearch) || // Arti
-        String(surah.nomor).includes(searchTerm.trim()) // Nomor Surah
+        surah.nama_latin.toLowerCase().includes(lowerCaseSearch) ||
+        (surah.nama && surah.nama.toLowerCase().includes(lowerCaseSearch)) || 
+        surah.arti.toLowerCase().includes(lowerCaseSearch) || 
+        String(surah.nomor).includes(searchTerm.trim()) 
     );
   }, [surahs, searchTerm]);
-
-  // Menutup notifikasi audio (TETAP)
   const handleCloseAudioError = useCallback(() => {
     setAudioError(null);
   }, []);
-
-  // Tambahkan useEffect untuk sinkronisasi audioRef dan currentAudioUrl (TETAP)
   useEffect(() => {
     const audioEl = audioRef.current;
     if (audioEl) {
@@ -107,20 +94,14 @@ const App = () => {
       };
     }
   }, []);
-
-  // Handler untuk memilih surah (TETAP)
   const handleSelectSurah = (surah) => {
     setSelectedSurah(surah);
     handleStopAudio();
   };
-
-  // Handler untuk kembali ke daftar surah (TETAP)
   const handleBackToList = () => {
     setSelectedSurah(null);
     handleStopAudio();
   };
-
-  // Logika Stop Audio yang baru (TETAP)
   const handleStopAudio = () => {
     if (audioRef.current && !audioRef.current.paused) {
       audioRef.current.pause();
@@ -129,14 +110,10 @@ const App = () => {
     setCurrentAudioUrl(null);
     handleCloseAudioError();
   };
-
-  // Logika Play Audio yang baru (TETAP)
   const handlePlayAudio = (audioUrl) => {
     const audioEl = audioRef.current;
-
     handleStopAudio();
     handleCloseAudioError();
-
     if (audioEl) {
       audioEl.src = audioUrl;
       audioEl.load();
@@ -152,7 +129,6 @@ const App = () => {
               "Browser memblokir pemutaran otomatis. Mohon coba klik lagi atau putar melalui kontrol di bawah."
             );
           } else if (e.name === "AbortError") {
-            // Abaikan
           } else {
             setAudioError(
               "Terdapat kesalahan saat memutar audio. Cek koneksi internet Anda."
@@ -162,27 +138,19 @@ const App = () => {
         });
     }
   };
-
-  // Menentukan judul halaman berdasarkan state
   const pageTitle = selectedSurah
     ? `Surah ${selectedSurah.nama_latin} (${selectedSurah.nama})`
     : "Al-Qur'an Digital Indonesia";
-
   return (
     <div className="min-h-screen bg-gray-50 pb-20 pt-20">
-      {/* Inject Arabic Font CSS */}
       <style dangerouslySetInnerHTML={{ __html: arabicFontCss }} />
-
-      {/* Header Aplikasi */}
       <AppHeader
         pageTitle={pageTitle}
         onBack={selectedSurah ? handleBackToList : null}
       />
-
-      {/* Konten Utama */}
       <main className="max-w-4xl mx-auto">
         {error &&
-          !selectedSurah && ( // Tampilkan error hanya di halaman daftar
+          !selectedSurah && ( 
             <div className="p-4 bg-red-100 text-red-700 border-l-4 border-red-500 rounded-lg m-4 flex justify-between items-center">
               <p>{error}</p>
               <button
@@ -194,7 +162,6 @@ const App = () => {
               </button>
             </div>
           )}
-
         {selectedSurah ? (
           <SurahDetail
             surah={selectedSurah}
@@ -205,17 +172,15 @@ const App = () => {
           />
         ) : (
           <SurahList
-            surahs={filteredSurahs} // Menggunakan daftar yang sudah difilter
+            surahs={filteredSurahs}
             isLoading={isLoading}
             onSelectSurah={handleSelectSurah}
             onRetry={fetchSurahList}
-            searchTerm={searchTerm} // Mengirim state pencarian
-            onSearchChange={handleSearchChange} // Mengirim handler pencarian
+            searchTerm={searchTerm} 
+            onSearchChange={handleSearchChange} 
           />
         )}
       </main>
-
-      {/* Notifikasi Audio */}
       {audioError && (
         <Notification
           message={audioError}
@@ -223,8 +188,6 @@ const App = () => {
           onClose={handleCloseAudioError}
         />
       )}
-
-      {/* Player Audio */}
       <div className="fixed bottom-0 left-0 right-0 bg-white shadow-2xl border-t border-emerald-100 p-2 z-20">
         <audio
           controls

@@ -14,9 +14,7 @@ const SurahDetail = ({
   const [detailData, setDetailData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-
   const API_URL_DETAIL = `${API_URL_DETAIL_BASE}/${surah.nomor}`;
-
   const fetchDetail = useCallback(async () => {
     setIsLoading(true);
     setError(null);
@@ -28,11 +26,9 @@ const SurahDetail = ({
         );
       }
       const data = await response.json();
-
       if (!data || !data.ayat || !Array.isArray(data.ayat)) {
         throw new Error("Gagal memuat detail surah: Format data tidak valid.");
       }
-
       setDetailData(data);
     } catch (err) {
       console.error("Fetch Error:", err);
@@ -41,15 +37,12 @@ const SurahDetail = ({
       setIsLoading(false);
     }
   }, [API_URL_DETAIL_BASE]);
-
   useEffect(() => {
     fetchDetail();
   }, [fetchDetail]);
-
   if (isLoading) {
     return <LoadingState message={`Memuat Surah ${surah.nama_latin}...`} />;
   }
-
   if (error) {
     return (
       <div className="p-6 text-center text-red-600 bg-red-100 rounded-lg m-4">
@@ -63,13 +56,10 @@ const SurahDetail = ({
       </div>
     );
   }
-
   const audioFullUrl = detailData?.audio;
   const isPlaying = audioFullUrl === currentAudioUrl;
-
   return (
     <div className="p-4 space-y-8">
-      {/* Informasi Umum Surah */}
       <div className="bg-white p-6 rounded-xl shadow-lg border-t-4 border-emerald-500">
         <div className="text-center mb-4">
           <h2 className="text-3xl font-extrabold text-emerald-800">
@@ -86,8 +76,6 @@ const SurahDetail = ({
             Surat Ke - {detailData.nomor}
           </p>
         </div>
-
-        {/* Tombol Play Audio */}
         {audioFullUrl && (
           <div className="flex justify-center mt-4 space-x-4">
             {isPlaying ? (
@@ -109,8 +97,6 @@ const SurahDetail = ({
             )}
           </div>
         )}
-
-        {/* Deskripsi/Tafsir Singkat */}
         <p className="mt-6 text-sm italic text-gray-500 border-t pt-4">
           {(detailData.deskripsi || "Deskripsi tidak tersedia").replace(
             /<[^>]*>?/gm,
@@ -118,8 +104,6 @@ const SurahDetail = ({
           )}
         </p>
       </div>
-
-      {/* Tampilkan Ayat-ayat */}
       <div className="space-y-10">
         {detailData.ayat.map((ayah) => (
           <AyahCard key={ayah.nomor} ayah={ayah} />

@@ -13,8 +13,6 @@ const SurahList = ({
   if (isLoading) {
     return <LoadingState message="Memuat daftar surah..." />;
   }
-
-  // Tampilkan notifikasi jika ada error umum (tapi App menanganinya juga)
   if (surahs.length === 0 && !searchTerm) {
     return (
       <div className="p-6 text-center text-red-600 bg-red-100 rounded-lg m-4">
@@ -28,8 +26,6 @@ const SurahList = ({
       </div>
     );
   }
-
-  // Komponen Input Pencarian
   const SearchInput = (
     <div className="p-4 bg-gray-50 mx-2">
       <div className="relative bg-white p-4 rounded-xl shadow-lg">
@@ -55,7 +51,6 @@ const SurahList = ({
       )}
     </div>
   );
-
   return (
     <>
       {SearchInput}
